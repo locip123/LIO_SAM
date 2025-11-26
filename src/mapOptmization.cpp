@@ -362,8 +362,12 @@ public:
       else saveMapDirectory = std::getenv("HOME") + req.destination;
       cout << "Save destination: " << saveMapDirectory << endl;
       // create directory and remove old files;
-      int unused = system((std::string("exec rm -r ") + saveMapDirectory).c_str());
-      unused = system((std::string("mkdir -p ") + saveMapDirectory).c_str());
+      const int removeStatus = system((std::string("exec rm -r ") + saveMapDirectory).c_str());
+      if (removeStatus != 0)
+          ROS_WARN("Failed to remove existing map directory %s (code %d)", saveMapDirectory.c_str(), removeStatus);
+      const int mkdirStatus = system((std::string("mkdir -p ") + saveMapDirectory).c_str());
+      if (mkdirStatus != 0)
+          ROS_WARN("Failed to create map directory %s (code %d)", saveMapDirectory.c_str(), mkdirStatus);
       // save key frame transformations
       pcl::io::savePCDFileBinary(saveMapDirectory + "/trajectory.pcd", *cloudKeyPoses3D);
       pcl::io::savePCDFileBinary(saveMapDirectory + "/transformations.pcd", *cloudKeyPoses6D);
@@ -1735,7 +1739,7 @@ public:
             pubPath.publish(globalPath);
         }
         // publish SLAM infomation for 3rd-party usage
-        static int lastSLAMInfoPubSize = -1;
+        static size_t lastSLAMInfoPubSize = std::numeric_limits<size_t>::max();
         if (pubSLAMInfo.getNumSubscribers() != 0)
         {
             if (lastSLAMInfoPubSize != cloudKeyPoses6D->size())

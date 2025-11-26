@@ -45,6 +45,7 @@
 #include <fstream>
 #include <ctime>
 #include <cfloat>
+#include <cstdint>
 #include <iterator>
 #include <sstream>
 #include <string>
